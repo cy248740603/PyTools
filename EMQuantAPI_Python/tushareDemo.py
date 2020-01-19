@@ -163,17 +163,21 @@ def gold_cross(code):
 
 # gain_i = gold_cross(df)
 # 近2天交易日
-date = '2019-12-30 00:00:00'
-date1 = '2019-12-27 00:00:00'
+date = '2020-01-16 00:00:00'
+date1 = '2020-01-17 00:00:00'
 for i in code_in:
     print(i)
     df = ts.get_k_data(i,start='2019-01-28')
+    a = ts.get_realtime_quotes(i)
+    for index,row in a.iterrows():
+        name = row['name']
+    # print(name)
     if df.size == 0:
         continue
-
     # 将数据的index转换成date字段对应的日期
     df.index = pd.to_datetime(df.date)
     kdj_df = kdj(df)
+
     # plot_kdj(kdj_df)
     # kdj_df.tail()
     # print(kdj_df)
@@ -189,12 +193,12 @@ for i in code_in:
                 if row['KDJ_金叉死叉'] == '死叉' :
                     f = open('xcode'+ str(index) +'.txt','a+')
                     f.read()
-                    f.write(i + row['KDJ_金叉死叉'] + str(row['k']) + '\n')
+                    f.write(str(name) + i + row['KDJ_金叉死叉'] + str(row['k']) + '\n')
                     f.close()
-                if row['KDJ_金叉死叉'] == '金叉' and row['k'] < 30:
+                if row['KDJ_金叉死叉'] == '金叉' and row['d'] < 30:
                     f = open('code'+ str(index) +'.txt','a+')
                     f.read()
-                    f.write(i + row['KDJ_金叉死叉'] + str(row['k']) + '\n')
+                    f.write(str(name) + i + row['KDJ_金叉死叉'] + str(row['k']) + '\n')
                     f.close()
                 # print(row)
     # print(kdj_df)
