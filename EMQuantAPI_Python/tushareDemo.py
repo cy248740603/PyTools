@@ -1,6 +1,7 @@
 import pandas as pd
 import tushare as ts
 import matplotlib
+import talib
 from  datetime import  datetime
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter,date2num
@@ -163,8 +164,8 @@ def gold_cross(code):
 
 # gain_i = gold_cross(df)
 # 近2天交易日
-date = '2020-01-16 00:00:00'
-date1 = '2020-01-17 00:00:00'
+date = '2020-02-27 00:00:00'
+date1 = '2020-02-27'
 for i in code_in:
     print(i)
     df = ts.get_k_data(i,start='2019-01-28')
@@ -176,8 +177,49 @@ for i in code_in:
         continue
     # 将数据的index转换成date字段对应的日期
     df.index = pd.to_datetime(df.date)
-    kdj_df = kdj(df)
+    ma_df = pd.DataFrame()
+    closed=df['close'].values
+    #获取均线的数据，通过timeperiod参数来分别获取 5,10,30 日均线的数据。
+    ma_df['ma5'] = talib.SMA(closed,timeperiod=5)
+    ma_df['ma10'] = talib.SMA(closed,timeperiod=10)
+    ma_df['ma30'] = talib.SMA(closed,timeperiod=30)
+    ma_df['low'] = df['low'].values
+    ma_df['ma_交叉'] = ''
 
+    ma_df.index = df.index
+    #打印出来每一个数据
+    # print (closed)
+    # print (ma_df)
+    ma_position=ma_df['ma5']>ma_df['ma10']
+    ma_df.loc[ma_position[(ma_position == True) & (ma_position.shift() == False)].index, 'ma_交叉'] = '金叉'
+
+    ma_df.loc[ma_position[(ma_position == False) & (ma_position.shift() == True)].index, 'ma_交叉'] = '死叉'
+    for index,row in ma_df.iterrows():
+        if str(index) == date or str(index) == date1:
+            j = 0
+            if abs(row['low'] - row['ma30']) <= (row['low']*0.005):
+                j += 1
+                f = open('code'+ str(index) +'.txt','a+')
+                f.read()
+                f.write(str(name) + i + 'ma30接触')
+                
+            # print(index)
+            if row['ma_交叉'] == '死叉' :
+                j += 1
+                f = open('xcode'+ str(index) +'.txt','a+')
+                f.read()
+                f.write(str(name) + i + 'ma' + row['ma_交叉'])
+                
+            if row['ma_交叉'] == '金叉' :
+                j += 1
+                f = open('code'+ str(index) +'.txt','a+')
+                f.read()
+                f.write(str(name) + i + 'ma' + row['ma_交叉'])
+            if j > 0 :
+                f.write('\n')
+                f.close()
+
+    kdj_df = kdj(df)
     # plot_kdj(kdj_df)
     # kdj_df.tail()
     # print(kdj_df)
